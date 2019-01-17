@@ -7,8 +7,7 @@ Created on Aug 14, 2018
 
 import random
 import torch
-import torch.nn.functional as F
-import torch.nn as nn
+
 clip = 5.
 
 def train(dnc, input, target, masks, criterion, optimizer, device):
@@ -50,7 +49,7 @@ def get_dataset(vector_size, min_s, max_s, num_batches, device):
     Masks (L) represents the part of the target which have to be considered in the loss
 
     '''
-    
+
     sequence_length = random.randint(min_s, max_s) # how many vectors in each input sequence
     total_length = 2 * sequence_length + 2 # extended number of vectors (input-target + 2 markers)
 

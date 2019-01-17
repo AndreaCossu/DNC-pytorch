@@ -17,14 +17,14 @@ millis = int(round(time.time() * 1000))
 parser = argparse.ArgumentParser()
 parser.add_argument('epochs', type=int)
 parser.add_argument('--hidden_size', type=int, default=64)
-parser.add_argument('--N', type=int, default=4)
+parser.add_argument('--N', type=int, default=64)
 parser.add_argument('--W', type=int, default=8)
 parser.add_argument('--R', type=int, default=2)
-parser.add_argument('--vector_len', type=int, default=7)
+parser.add_argument('--vector_len', type=int, default=4)
 parser.add_argument('--min_length_train', type=int, default=2)  # min sequence length to copy during training
 parser.add_argument('--max_length_train', type=int, default=5)  # max sequence length to copy during training
-parser.add_argument('--min_length_test', type=int, default=8)  # min sequence length to copy during validation and testing
-parser.add_argument('--max_length_test', type=int, default=10)  # max sequence length to copy during validaiton and testing
+parser.add_argument('--min_length_test', type=int, default=2)  # min sequence length to copy during validation and testing
+parser.add_argument('--max_length_test', type=int, default=5)  # max sequence length to copy during validaiton and testing
 parser.add_argument('--momentum', type=float, default=0.7)
 parser.add_argument('--learning_rate', type=float, default=1e-5)
 parser.add_argument('--mlp_layers', type=int, default=0) # set it > 0 to choose a MLP controller
@@ -33,7 +33,7 @@ parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--cuda', action="store_true")
 parser.add_argument('--load', action="store_true")
 parser.add_argument('--no_save', action="store_true")
-parser.add_argument('--print_every', type=int, default=100)
+parser.add_argument('--print_every', type=int, default=1000)
 args = parser.parse_args()
 
 def init_weights(m):
