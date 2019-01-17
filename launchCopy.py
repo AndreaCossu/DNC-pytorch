@@ -10,7 +10,7 @@ import torch.optim as optim
 import time
 from core.DNC import DNC
 from CopyTask.train import train, get_dataset, masked_BCE_with_logits
-from CopyTask.test import test, accuracy 
+from CopyTask.test import test, accuracy
 
 millis = int(round(time.time() * 1000))
 
@@ -51,7 +51,7 @@ if args.cuda:
         print("WARNING: No GPU found. Using CPUs...")
 else:
     print('Using 0 GPUs')
-    
+
 device = torch.device(mode)
 controller_type = 'MLP' if args.mlp_layers > 0 else 'LSTM'
 
@@ -77,8 +77,8 @@ dnc.apply(init_weights)
 
 if args.load:
     dnc.load_model(path)
-    
-optimizer = optim.RMSprop(dnc.parameters(), lr=args.learning_rate, momentum=args.momentum, eps=1e-10, weight_decay=1e-3)
+
+optimizer = optim.RMSprop(dnc.parameters(), lr=args.learning_rate, momentum=args.momentum, eps=1e-10, weight_decay=0.)
 criterion = masked_BCE_with_logits
 
 
@@ -89,7 +89,7 @@ best_val_loss = 1000.
 for i in range(args.epochs):
     inputs, targets, masks = get_dataset(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
     avg_loss += train(dnc, inputs, targets, masks, criterion, optimizer, device)
-        
+
     if ((i+1) % args.print_every) == 0:
         valOut, valLoss = test(dnc, inputsVal, device, targetsVal, criterion, valMasks)
         acc = accuracy(valOut, targetsVal, valMasks)
@@ -103,9 +103,9 @@ for i in range(args.epochs):
         print("Epoch", i+1, ": validation loss =", valLoss)
         print("Epoch", i+1, ": validation accuracy =", acc, "%")
         avg_loss = 0.
-        
 
-testInputs, testTargets, testMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device) 
+
+testInputs, testTargets, testMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
 
 outs, loss = test(dnc, testInputs, device, testTargets, criterion, testMasks)
 acc = accuracy(outs, testTargets, testMasks)
@@ -114,4 +114,3 @@ print("Loss on test set: ", loss)
 print("Accuracy on test set: ", acc, "%")
 print("Result ( 1 -> correct, 0 -> wrong):")
 print(outs[0].round() == testTargets[0])
-
