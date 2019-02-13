@@ -23,7 +23,7 @@ def train(dnc, input, target, masks, criterion, optimizer, device):
 
     num_vectors = input.size(1)
 
-    dnc.zero_grad()
+    optimizer.zero_grad()
 
     hidden_state, mem_state = dnc.reset()
 
