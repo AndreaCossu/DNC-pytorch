@@ -9,8 +9,8 @@ import torch
 import torch.optim as optim
 import time
 from core.DNC import DNC
-from CopyTask.train import train, get_dataset, masked_BCE_with_logits
-from CopyTask.test import test, accuracy
+from CopyTask.train import train, get_dataset, masked_BCE_with_logits, get_dataset2, train2
+from CopyTask.test import test, accuracy, accuracy2, test2
 
 millis = int(round(time.time() * 1000))
 
@@ -23,10 +23,10 @@ parser.add_argument('--R', type=int, default=2)
 parser.add_argument('--vector_len', type=int, default=4)
 parser.add_argument('--min_length_train', type=int, default=2)  # min sequence length to copy during training
 parser.add_argument('--max_length_train', type=int, default=5)  # max sequence length to copy during training
-parser.add_argument('--min_length_test', type=int, default=2)  # min sequence length to copy during validation and testing
-parser.add_argument('--max_length_test', type=int, default=5)  # max sequence length to copy during validaiton and testing
+parser.add_argument('--min_length_test', type=int, default=7)  # min sequence length to copy during validation and testing
+parser.add_argument('--max_length_test', type=int, default=10)  # max sequence length to copy during validaiton and testing
 parser.add_argument('--momentum', type=float, default=0.7)
-parser.add_argument('--learning_rate', type=float, default=1e-5)
+parser.add_argument('--learning_rate', type=float, default=1e-4)
 parser.add_argument('--mlp_layers', type=int, default=0) # set it > 0 to choose a MLP controller
 parser.add_argument('--lstm_layers', type=int, default=1)
 parser.add_argument('--batch_size', type=int, default=8)
@@ -68,9 +68,12 @@ test_num_max_vectors = args.max_length_test
 
 
 inputSize = args.vector_len
-outputSize = args.vector_len
+#outputSize = args.vector_len
+outputSize = args.vector_len - 1
 
-output_f = torch.sigmoid
+
+#output_f = torch.sigmoid
+output_f = None
 dnc = DNC(inputSize,args.hidden_size, num_layers, outputSize,args.N,args.W,args.R,
           args.batch_size, device, controller_type, output_f)
 dnc.apply(init_weights)
@@ -79,20 +82,30 @@ if args.load:
     dnc.load_model(path)
 
 optimizer = optim.RMSprop(dnc.parameters(), lr=args.learning_rate, momentum=args.momentum, eps=1e-10, weight_decay=0.)
-criterion = masked_BCE_with_logits
+#criterion = masked_BCE_with_logits
+criterion = torch.nn.BCEWithLogitsLoss()
 
 
-inputsVal, targetsVal, valMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
+
+#inputsVal, targetsVal, valMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
+inputsVal, targetsVal = get_dataset2(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
 
 avg_loss = 0.
 best_val_loss = 1000.
 for i in range(args.epochs):
-    inputs, targets, masks = get_dataset(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
-    avg_loss += train(dnc, inputs, targets, masks, criterion, optimizer, device)
+    #inputs, targets, masks = get_dataset(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
+    #avg_loss += train(dnc, inputs, targets, masks, criterion, optimizer, device)
+
+    inputs, targets = get_dataset2(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
+    avg_loss += train2(dnc, inputs, targets, criterion, optimizer, device)
+
 
     if ((i+1) % args.print_every) == 0:
-        valOut, valLoss = test(dnc, inputsVal, device, targetsVal, criterion, valMasks)
-        acc = accuracy(valOut, targetsVal, valMasks)
+        #valOut, valLoss = test(dnc, inputsVal, device, targetsVal, criterion, valMasks)
+        #acc = accuracy(valOut, targetsVal, valMasks)
+        valOut, valLoss = test2(dnc, inputsVal, device, targetsVal, criterion)
+        acc = accuracy2(valOut, targetsVal)
+
         # save best model on validation set
         if not args.no_save:
             if best_val_loss > valLoss:
@@ -105,10 +118,14 @@ for i in range(args.epochs):
         avg_loss = 0.
 
 
-testInputs, testTargets, testMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
+#testInputs, testTargets, testMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
+testInputs, testTargets = get_dataset2(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
 
-outs, loss = test(dnc, testInputs, device, testTargets, criterion, testMasks)
-acc = accuracy(outs, testTargets, testMasks)
+#outs, loss = test(dnc, testInputs, device, testTargets, criterion, testMasks)
+#acc = accuracy(outs, testTargets, testMasks)
+
+outs, loss = test2(dnc, testInputs, device, testTargets, criterion)
+acc = accuracy2(outs, testTargets)
 
 print("Loss on test set: ", loss)
 print("Accuracy on test set: ", acc, "%")
