@@ -140,8 +140,8 @@ class DynamicMemoryAllocation(nn.Module):
 
         # sort from smallest to largest
         sorting = torch.sort(memory_usage) # discontinuities in gradient. Not important according to DNC's authors.
-        ordered_usage = torch.detach(sorting[0]) # B, N
-        free_list = torch.detach(sorting[1].long())
+        ordered_usage = sorting[0] # B, N
+        free_list = sorting[1].long()
 
         return free_list, ordered_usage
 
