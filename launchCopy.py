@@ -25,7 +25,7 @@ parser.add_argument('--min_length_train', type=int, default=2)  # min sequence l
 parser.add_argument('--max_length_train', type=int, default=5)  # max sequence length to copy during training
 parser.add_argument('--min_length_test', type=int, default=7)  # min sequence length to copy during validation and testing
 parser.add_argument('--max_length_test', type=int, default=10)  # max sequence length to copy during validaiton and testing
-parser.add_argument('--momentum', type=float, default=0.7)
+parser.add_argument('--momentum', type=float, default=0.9)
 parser.add_argument('--learning_rate', type=float, default=1e-4)
 parser.add_argument('--mlp_layers', type=int, default=0) # set it > 0 to choose a MLP controller
 parser.add_argument('--lstm_layers', type=int, default=1)
@@ -88,46 +88,50 @@ criterion = torch.nn.BCEWithLogitsLoss()
 
 
 #inputsVal, targetsVal, valMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
-inputsVal, targetsVal = get_dataset2(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
+inputs_test, targets_test = get_dataset2(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
 
 avg_loss = 0.
-best_val_loss = 1000.
+avg_acc = 0.
+best_loss = 1000.
 for i in range(args.epochs):
     #inputs, targets, masks = get_dataset(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
     #avg_loss += train(dnc, inputs, targets, masks, criterion, optimizer, device)
 
     inputs, targets = get_dataset2(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
-    avg_loss += train2(dnc, inputs, targets, criterion, optimizer, device)
+    outs, loss = train2(dnc, inputs, targets, criterion, optimizer, device)
+    avg_loss += loss
+    acc = accuracy2(outs, targets)
+    avg_acc += acc
 
 
     if ((i+1) % args.print_every) == 0:
         #valOut, valLoss = test(dnc, inputsVal, device, targetsVal, criterion, valMasks)
         #acc = accuracy(valOut, targetsVal, valMasks)
-        valOut, valLoss = test2(dnc, inputsVal, device, targetsVal, criterion)
-        acc = accuracy2(valOut, targetsVal)
+
+        #valOut, valLoss = test2(dnc, inputsVal, device, targetsVal, criterion)
+        #acc = accuracy2(valOut, targetsVal)
 
         # save best model on validation set
+
+        avg_acc = avg_acc / float(args.print_every)
+        avg_loss = avg_loss / float(args.print_every)
         if not args.no_save:
-            if best_val_loss > valLoss:
-                best_val_loss = valLoss
+            if best_loss > avg_loss:
+                best_loss = avg_loss
                 dnc.save_model(path)
         print()
-        print("Epoch ", i+1, ": training loss = ", avg_loss / float(args.print_every))
-        print("Epoch", i+1, ": validation loss =", valLoss)
-        print("Epoch", i+1, ": validation accuracy =", acc, "%")
+        print("Epoch ", i+1, ": loss = ", avg_loss )
+        print("Epoch", i+1, ": accuracy =", avg_acc, "%")
         avg_loss = 0.
+        avg_acc = 0.
 
 
-#testInputs, testTargets, testMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
-testInputs, testTargets = get_dataset2(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
 
 #outs, loss = test(dnc, testInputs, device, testTargets, criterion, testMasks)
 #acc = accuracy(outs, testTargets, testMasks)
 
-outs, loss = test2(dnc, testInputs, device, testTargets, criterion)
-acc = accuracy2(outs, testTargets)
+outs, loss = test2(dnc, inputs_test, device, targets_test, criterion)
+acc = accuracy2(outs, targets_test)
 
 print("Loss on test set: ", loss)
 print("Accuracy on test set: ", acc, "%")
-print("Result ( 1 -> correct, 0 -> wrong):")
-print(outs[0].round() == testTargets[0])

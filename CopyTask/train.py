@@ -40,7 +40,7 @@ def train(dnc, input, target, masks, criterion, optimizer, device):
 
     optimizer.step()
 
-    return loss.item()
+    return outputs, loss.item()
 
 def train2(dnc, input, target, criterion, optimizer, device):
     '''
@@ -75,7 +75,7 @@ def train2(dnc, input, target, criterion, optimizer, device):
 
     optimizer.step()
 
-    return loss.item()
+    return outputs, loss.item()
 
 def get_dataset(vector_size, min_s, max_s, num_batches, device):
     '''
