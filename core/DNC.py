@@ -205,4 +205,4 @@ class DNC(nn.Module):
         Prevent nan when doing cross entropy loss
         '''
 
-        return torch.clamp(tensor, min=-5.5, max=5.5)
+        return torch.clamp(tensor, min=-10., max=10.)
