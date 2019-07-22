@@ -23,8 +23,7 @@ parser.add_argument('--R', type=int, default=2)
 parser.add_argument('--vector_len', type=int, default=4) # including delimiter
 parser.add_argument('--min_length_train', type=int, default=2)  # min sequence length to copy during training
 parser.add_argument('--max_length_train', type=int, default=5)  # max sequence length to copy during training
-parser.add_argument('--min_length_test', type=int, default=7)  # min sequence length to copy during validation and testing
-parser.add_argument('--max_length_test', type=int, default=10)  # max sequence length to copy during validaiton and testing
+parser.add_argument('--length_test', type=int, default=7)  # sequence length to copy during and testing
 parser.add_argument('--momentum', type=float, default=0.9)
 parser.add_argument('--learning_rate', type=float, default=1e-4)
 parser.add_argument('--mlp_layers', type=int, default=0) # set it > 0 to choose a MLP controller
@@ -63,8 +62,7 @@ else:
 path = "models/DNC.pt"
 num_min_vectors = args.min_length_train
 num_max_vectors = args.max_length_train
-test_num_min_vectors = args.min_length_test
-test_num_max_vectors = args.max_length_test
+test_num_vectors = args.length_test
 
 
 inputSize = args.vector_len
@@ -85,7 +83,7 @@ criterion = torch.nn.BCEWithLogitsLoss()
 
 
 
-inputs_test, targets_test = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
+inputs_test, targets_test = get_dataset(args.vector_len, test_num_vectors, test_num_vectors, args.batch_size, device)
 
 avg_loss = 0.
 avg_acc = 0.
