@@ -9,8 +9,8 @@ import torch
 import torch.optim as optim
 import time
 from core.DNC import DNC
-from CopyTask.train import train, get_dataset, masked_BCE_with_logits, get_dataset2, train2
-from CopyTask.test import test, accuracy, accuracy2, test2
+from CopyTask.train import train, get_dataset
+from CopyTask.test import test, accuracy
 
 millis = int(round(time.time() * 1000))
 
@@ -68,7 +68,6 @@ test_num_max_vectors = args.max_length_test
 
 
 inputSize = args.vector_len
-#outputSize = args.vector_len
 outputSize = args.vector_len - 1
 
 
@@ -82,31 +81,25 @@ if args.load:
     dnc.load_model(path)
 
 optimizer = optim.RMSprop(dnc.parameters(), lr=args.learning_rate, momentum=args.momentum, eps=1e-10, weight_decay=0.)
-#criterion = masked_BCE_with_logits
 criterion = torch.nn.BCEWithLogitsLoss()
 
 
 
-#inputsVal, targetsVal, valMasks = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
-inputs_test, targets_test = get_dataset2(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
+inputs_test, targets_test = get_dataset(args.vector_len, test_num_min_vectors, test_num_max_vectors, args.batch_size, device)
 
 avg_loss = 0.
 avg_acc = 0.
 best_loss = 1000.
 for i in range(args.epochs):
-    #inputs, targets, masks = get_dataset(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
-    #avg_loss += train(dnc, inputs, targets, masks, criterion, optimizer, device)
 
-    inputs, targets = get_dataset2(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
-    outs, loss = train2(dnc, inputs, targets, criterion, optimizer, device)
+    inputs, targets = get_dataset(args.vector_len, num_min_vectors, num_max_vectors, args.batch_size, device)
+    outs, loss = train(dnc, inputs, targets, criterion, optimizer, device)
     avg_loss += loss
-    acc = accuracy2(outs, targets)
+    acc = accuracy(outs, targets)
     avg_acc += acc
 
 
     if ((i+1) % args.print_every) == 0:
-        #valOut, valLoss = test(dnc, inputsVal, device, targetsVal, criterion, valMasks)
-        #acc = accuracy(valOut, targetsVal, valMasks)
 
         #valOut, valLoss = test2(dnc, inputsVal, device, targetsVal, criterion)
         #acc = accuracy2(valOut, targetsVal)
@@ -126,12 +119,8 @@ for i in range(args.epochs):
         avg_acc = 0.
 
 
-
-#outs, loss = test(dnc, testInputs, device, testTargets, criterion, testMasks)
-#acc = accuracy(outs, testTargets, testMasks)
-
-outs, loss = test2(dnc, inputs_test, device, targets_test, criterion)
-acc = accuracy2(outs, targets_test)
+outs, loss = test(dnc, inputs_test, device, targets_test, criterion)
+acc = accuracy(outs, targets_test)
 
 print("Loss on test set: ", loss)
 print("Accuracy on test set: ", acc, "%")
