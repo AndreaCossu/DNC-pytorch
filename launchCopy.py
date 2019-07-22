@@ -20,7 +20,7 @@ parser.add_argument('--hidden_size', type=int, default=64)
 parser.add_argument('--N', type=int, default=64)
 parser.add_argument('--W', type=int, default=8)
 parser.add_argument('--R', type=int, default=2)
-parser.add_argument('--vector_len', type=int, default=4)
+parser.add_argument('--vector_len', type=int, default=4) # including delimiter
 parser.add_argument('--min_length_train', type=int, default=2)  # min sequence length to copy during training
 parser.add_argument('--max_length_train', type=int, default=5)  # max sequence length to copy during training
 parser.add_argument('--min_length_test', type=int, default=7)  # min sequence length to copy during validation and testing

@@ -67,7 +67,7 @@ class DNC(nn.Module):
             'read_keys' : torch.Size([self.batch_size, self.W, self.num_read_heads]),
             'read_strengths' : torch.Size([self.batch_size, self.num_read_heads]),
             'write_key' : torch.Size([self.batch_size, self.W]),
-            'write_strenght' : torch.Size([self.batch_size]),
+            'write_strength' : torch.Size([self.batch_size]),
             'erase_vector' : torch.Size([self.batch_size, self.W]),
             'write_vector' : torch.Size([self.batch_size, self.W]),
             'free_gates' : torch.Size([self.batch_size, self.num_read_heads]),
@@ -91,7 +91,7 @@ class DNC(nn.Module):
 
         # adapt domain of some memory parameters
         xi['read_strengths'] = self.oneplus(xi['read_strengths'])
-        xi['write_strenght'] = self.oneplus(xi['write_strenght'])
+        xi['write_strength'] = self.oneplus(xi['write_strength'])
         xi['erase_vector'] = torch.sigmoid(xi['erase_vector'])
         xi['free_gates'] = torch.sigmoid(xi['free_gates'])
         xi['allocation_gate'] = torch.sigmoid(xi['allocation_gate'])
@@ -125,7 +125,7 @@ class DNC(nn.Module):
 
         # update memory state
         read_vectors, memory_state = self.memory(xi['erase_vector'], xi['free_gates'], xi['allocation_gate'], xi['write_gate'], xi['read_modes'],
-                xi['read_strengths'], xi['read_keys'], xi['write_vector'], xi['write_key'], xi['write_strenght'], memory_state)
+                xi['read_strengths'], xi['read_keys'], xi['write_vector'], xi['write_key'], xi['write_strength'], memory_state)
 
 
         read_adaptive = self.read_l(read_vectors.transpose(1,2).contiguous().view(self.batch_size, -1))
